@@ -94,7 +94,7 @@ const displayMovements = function (movements, sort = false) {
         <div class="movements__type movements__type--${type}">${
       i + 1
     } ${type}</div>
-        <div class="movements__value">${mov}€</div>
+        <div class="movements__value">${mov.toFixed(2)}€</div>
       </div>
     `;
 
@@ -104,19 +104,19 @@ const displayMovements = function (movements, sort = false) {
 
 const calcDisplayBalance = function (acc) {
   acc.balance = acc.movements.reduce((acc, mov) => acc + mov, 0);
-  labelBalance.textContent = `${acc.balance}€`;
+  labelBalance.textContent = `${acc.balance.toFixed(2)}€`;
 };
 
 const calcDisplaySummary = function (acc) {
   const incomes = acc.movements
     .filter(mov => mov > 0)
     .reduce((acc, mov) => acc + mov, 0);
-  labelSumIn.textContent = `${incomes}€`;
+  labelSumIn.textContent = `${incomes.toFixed(2)}€`;
 
   const out = acc.movements
     .filter(mov => mov < 0)
     .reduce((acc, mov) => acc + mov, 0);
-  labelSumOut.textContent = `${Math.abs(out)}€`;
+  labelSumOut.textContent = `${Math.abs(out.toFixed(2))}€`;
 
   const interest = acc.movements
     .filter(mov => mov > 0)
@@ -126,7 +126,7 @@ const calcDisplaySummary = function (acc) {
       return int >= 1;
     })
     .reduce((acc, int) => acc + int, 0);
-  labelSumInterest.textContent = `${interest}€`;
+  labelSumInterest.textContent = `${interest.toFixed(2)}€`;
 };
 
 const createUsernames = function (accs) {
@@ -164,7 +164,7 @@ btnLogin.addEventListener('click', function (e) {
   );
   console.log(currentAccount);
 
-  if (currentAccount?.pin === Number(inputLoginPin.value)) {
+  if (currentAccount?.pin === +inputLoginPin.value) {
     // Display UI and message
     labelWelcome.textContent = `Welcome back, ${
       currentAccount.owner.split(' ')[0]
@@ -182,7 +182,7 @@ btnLogin.addEventListener('click', function (e) {
 
 btnTransfer.addEventListener('click', function (e) {
   e.preventDefault();
-  const amount = Number(inputTransferAmount.value);
+  const amount = +inputTransferAmount.value;
   const receiverAcc = accounts.find(
     acc => acc.username === inputTransferTo.value
   );
@@ -206,7 +206,7 @@ btnTransfer.addEventListener('click', function (e) {
 btnLoan.addEventListener('click', function (e) {
   e.preventDefault();
 
-  const amount = Number(inputLoanAmount.value);
+  const amount = Math.floor(inputLoanAmount.value);
 
   if (amount > 0 && currentAccount.movements.some(mov => mov >= amount * 0.1)) {
     // Add movement
@@ -223,7 +223,7 @@ btnClose.addEventListener('click', function (e) {
 
   if (
     inputCloseUsername.value === currentAccount.username &&
-    Number(inputClosePin.value) === currentAccount.pin
+    +inputClosePin.value === currentAccount.pin
   ) {
     const index = accounts.findIndex(
       acc => acc.username === currentAccount.username
@@ -251,3 +251,142 @@ btnSort.addEventListener('click', function (e) {
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
 // LECTURES
+console.log(23 === 23.0); //true
+//base 10 0 to 9. 1/10 = 0.1, 3/10 = 3.33333333...
+//binary base 2 - 0 1
+console.log(0.1 + 0.2); //0.30000000000004 wird result in js
+console.log(0.1 + 0.2 === 0.3); //false!
+
+//Conversion
+console.log(Number('23')); //23
+console.log(+'23'); //plus operand changes string to number
+
+//Parsing
+console.log(Number.parseInt('30px', 10)); //parsing string to number, sec parameter 10 base
+
+console.log(Number.parseInt('2.5rem')); //2 integer = calkowite
+console.log(Number.parseFloat('2.5rem')); //2.5
+
+console.log(Number.isNaN(20)); //NaN (not a number) => false,
+
+//Checking if value is a number
+console.log(Number.isFinite(20)); //true
+console.log(Number.isFinite('20')); //false string
+console.log(Number.isFinite(+'20')); //true
+
+console.log(Number.isInteger(23)); //true
+console.log(Number.isInteger(23.0)); //true
+console.log(Number.isInteger(23 / 0)); //false
+
+//////////////////////////////////////////////////////////////////////////////
+//MATH AND ROUNDING
+
+console.log(Math.sqrt(25)); //5 square root, pierviastek
+console.log(25 ** (1 / 2)); //5 inny zapis
+console.log(8 ** (1 / 3)); // pierwiastek potrojny z 8 = 2 do trzeciej potegi(qubik root)
+
+console.log(Math.max(5, 18, 23, 11, 2)); //23
+console.log(Math.max(5, 18, '23', 11, 2)); //23
+
+console.log(Math.min(5, 18, 23, 11, 2)); //2
+
+console.log(Math.PI * Number.parseFloat('10px') ** 2); // obliczanie powierzchni kola
+
+console.log(Math.trunc(Math.random() * 6) + 1); //1-6 random numbers
+
+const randomInt = (min, max) =>
+  Math.floor(Math.random() * (max - min) + 1) + min;
+console.log(randomInt(10, 20));
+
+//Rounding Integers
+console.log(Math.trunc(23.3)); //23
+
+console.log(Math.round(23.3)); //23
+console.log(Math.round(23.9)); //24
+
+console.log(Math.ceil(23.3)); //24
+console.log(Math.ceil(23.9)); //24
+console.log(Math.ceil(-23.3)); //-23
+
+console.log(Math.floor(23.3)); //23
+console.log(Math.floor(-23.3)); //-24
+
+console.log(Math.trunc(-23.3)); //-23
+console.log(Math.floor(-23.3)); //-24 //floor better to use
+
+//rounding decimals
+//toFixed returns string
+console.log((2.7).toFixed(0)); // 2.7 str
+console.log((2.7).toFixed(3)); //2.700 str
+console.log(+(2.345).toFixed(2)); //2.35
+
+/////////////////////////////////////////////////////////////////////////
+//REMAINDER OPERATOR
+console.log(5 % 2); // 1
+console.log(8 % 3); //2
+
+console.log(6 % 2); //0
+
+const isEven = n => n % 2 === 0;
+
+console.log(isEven(7)); //false
+console.log(isEven(10)); //true
+
+// labelBalance.addEventListener('click', function () {
+//   [...document.querySelectorAll('.movements__row')].forEach(function (row, i) {
+//     //0,2,4,6,
+//     if (i % 2 === 0) row.style.backgroundColor = 'orangered';
+
+//     //0,3,6,9,
+//     if (i % 3 === 0) row.style.backgroundColor = 'blue';
+//   });
+// });
+
+///////////////////////////////////////////////////////////////////////////////
+//NUMERIC SEPARATORS // dont use in methods
+
+287_460_000_000;
+const diameter = 287_460_000_000;
+console.log(diameter); // we can use underscore separator because system is treating this as a normal number
+
+const price = 345_99;
+console.log(price);
+
+const transferFee = 15_00;
+const transferFee2 = 1_500;
+
+////////////////////////////////////////////////////////////////////////////////
+//BIG INT
+
+//the biggest number which can be represent in js
+console.log(2 ** 53 - 1);
+console.log(Number.MAX_SAFE_INTEGER);
+
+console.log(2 ** 53 + 1); //here starts some problem with numbers accuracy...
+console.log(2 ** 53 + 2);
+console.log(2 ** 53 + 3);
+
+///BIG INTEGERS coming here to help
+console.log(24589966541233325477852223n);
+console.log(BigInt(4852136552)); //changing number to BigInt
+
+///Operations on BigInt
+console.log(10000n + 10000n); //20000n
+console.log(36524889223555662222258563112555n * 100000000000n); //works
+
+const huge = 2024521485324855966525n;
+const num = 23;
+//console.log(huge * num); //error, bigInt cant be mixed with numbers
+console.log(huge * BigInt(num)); //works
+
+//LOGICAL OPERATORS and string concatenation ARE EXCEPTIONS
+console.log(20n > 15); //true
+console.log(20n === 20); //false, because different types
+
+console.log(huge + 'is REALLY Big!!!'); //2024521485324855966525n is REALLY Big!!!
+
+//Divisions
+console.log(10n / 3n); // 3n - integers!
+console.log(10 / 3); //3.333..
+
+/////////////////////////////////////////////////////////////////////////////////////////

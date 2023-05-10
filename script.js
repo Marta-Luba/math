@@ -390,3 +390,43 @@ console.log(10n / 3n); // 3n - integers!
 console.log(10 / 3); //3.333..
 
 /////////////////////////////////////////////////////////////////////////////////////////
+//CREATING DATES
+const now = new Date();
+console.log(now);
+
+console.log(new Date(' December 24,  2015'));
+
+console.log(new Date(account1.movementsDates[0]));
+console.log(new Date(2037, 10, 19, 15, 23, 5)); //10=>11 November 0-based months
+
+//autocorrect dates
+console.log(new Date(2037, 10, 31)); //only 30 days in nov => 01 dec
+
+console.log(new Date(0)); //01.01.1970
+console.log(new Date(3 * 24 * 60 * 60 * 1000)); //3 days later
+
+console.log(3 * 24 * 60 * 60 * 1000); //259_200_000
+
+//WORKING WITH DATES
+
+const future = new Date(2037, 10, 19, 15, 23);
+console.log(future);
+console.log(future.getFullYear());
+console.log(future.getMonth()); //10 = nov
+console.log(future.getDate()); //19th
+console.log(future.getDay()); //4 => thursday
+console.log(future.getHours());
+console.log(future.getMinutes());
+console.log(future.getSeconds());
+
+console.log(future.toISOString());
+
+console.log(future.getTime()); //2142256980000
+console.log(new Date(2142256980000));
+
+//TIMESTAMP
+console.log(Date.now()); //gives timestamp
+
+//set methods
+future.setFullYear(2040);
+console.log(future);

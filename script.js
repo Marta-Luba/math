@@ -81,23 +81,32 @@ const inputClosePin = document.querySelector('.form__input--pin');
 /////////////////////////////////////////////////
 // Functions
 
-const formatMovementDate = function (date) {
+const formatMovementDate = function (date, locale) {
   const calcDaysPassed = (date1, date2) =>
     Math.round(Math.abs(date2 - date1) / (1000 * 60 * 60 * 24));
 
   const daysPassed = calcDaysPassed(new Date(), date);
-  console.log(daysPassed);
+
   if (daysPassed === 0) return 'Today';
   if (daysPassed === 1) return 'Yesterday';
   if (daysPassed <= 7) return `${daysPassed} days ago`;
-  else {
-    const day = `${date.getDate()}`.padStart(2, '0');
-    const month = `${date.getMonth() + 1}`.padStart(2, 0);
-    const year = date.getFullYear();
-    return `${day}/${month}/${year}`;
-  }
+
+  return new Intl.DateTimeFormat(locale).format(date);
+
+  // else {
+  //   const day = `${date.getDate()}`.padStart(2, '0');
+  //   const month = `${date.getMonth() + 1}`.padStart(2, 0);
+  //   const year = date.getFullYear();
+  //   return `${day}/${month}/${year}`;
+  // }
 };
 
+const formatCur = function (value, locale, currency) {
+  return new Intl.NumberFormat(locale, {
+    style: 'currency',
+    currency: currency,
+  }).format(value);
+};
 const displayMovements = function (acc, sort = false) {
   containerMovements.innerHTML = '';
 
@@ -109,7 +118,9 @@ const displayMovements = function (acc, sort = false) {
     const type = mov > 0 ? 'deposit' : 'withdrawal';
 
     const date = new Date(acc.movementsDates[i]);
-    const displayDate = formatMovementDate(date);
+    const displayDate = formatMovementDate(date, acc.locale);
+
+    const formattedMov = formatCur(mov, acc.locale, acc.currency);
 
     const html = `
       <div class="movements__row">
@@ -117,7 +128,7 @@ const displayMovements = function (acc, sort = false) {
       i + 1
     } ${type}</div>
         <div class='movements__date'>${displayDate}</div>
-        <div class="movements__value">${mov.toFixed(2)}€</div>
+        <div class="movements__value">${formattedMov}</div>
       </div>
     `;
 
@@ -127,19 +138,20 @@ const displayMovements = function (acc, sort = false) {
 
 const calcDisplayBalance = function (acc) {
   acc.balance = acc.movements.reduce((acc, mov) => acc + mov, 0);
-  labelBalance.textContent = `${acc.balance.toFixed(2)}€`;
+
+  labelBalance.textContent = formatCur(acc.balance, acc.locale, acc.currency);
 };
 
 const calcDisplaySummary = function (acc) {
   const incomes = acc.movements
     .filter(mov => mov > 0)
     .reduce((acc, mov) => acc + mov, 0);
-  labelSumIn.textContent = `${incomes.toFixed(2)}€`;
+  labelSumIn.textContent = formatCur(incomes, acc.locale, acc.currency);
 
   const out = acc.movements
     .filter(mov => mov < 0)
     .reduce((acc, mov) => acc + mov, 0);
-  labelSumOut.textContent = `${Math.abs(out.toFixed(2))}€`;
+  labelSumOut.textContent = formatCur(Math.abs(out), acc.locale, acc.currency);
 
   const interest = acc.movements
     .filter(mov => mov > 0)
@@ -149,7 +161,7 @@ const calcDisplaySummary = function (acc) {
       return int >= 1;
     })
     .reduce((acc, int) => acc + int, 0);
-  labelSumInterest.textContent = `${interest.toFixed(2)}€`;
+  labelSumInterest.textContent = formatCur(interest, acc.locale, acc.currency);
 };
 
 const createUsernames = function (accs) {
@@ -185,8 +197,6 @@ updateUI(currentAccount);
 containerApp.style.opacity = 100;
 //----------------------------------
 
-//  day/month/year
-
 btnLogin.addEventListener('click', function (e) {
   // Prevent form from submitting
   e.preventDefault();
@@ -204,14 +214,29 @@ btnLogin.addEventListener('click', function (e) {
     containerApp.style.opacity = 100;
 
     //create current date and time
-    const now = new Date();
-    const day = `${now.getDate()}`.padStart(2, '0');
-    const month = `${now.getMonth() + 1}`.padStart(2, 0);
-    const year = now.getFullYear();
-    const hour = `${now.getHours()}`.padStart(2, 0);
-    const min = `${now.getMinutes()}`.padStart(2, 0);
 
-    labelDate.textContent = `${day}/${month}/${year}, ${hour}:${min}`;
+    const now = new Date();
+    const options = {
+      hour: 'numeric',
+      minute: 'numeric',
+      day: 'numeric',
+      month: 'numeric', //numeric, long or '2-digit'
+      year: 'numeric',
+      // weekday: 'long',
+    };
+    // const locale = navigator.language;
+    // console.log(locale);
+    labelDate.textContent = new Intl.DateTimeFormat(
+      currentAccount.locale,
+      options
+    ).format(now);
+    // const day = `${now.getDate()}`.padStart(2, '0');
+    // const month = `${now.getMonth() + 1}`.padStart(2, 0);
+    // const year = now.getFullYear();
+    // const hour = `${now.getHours()}`.padStart(2, 0);
+    // const min = `${now.getMinutes()}`.padStart(2, 0);
+    // labelDate.textContent = `${day}/${month}/${year}, ${hour}:${min}`;
+
     // Clear input fields
     inputLoginUsername.value = inputLoginPin.value = '';
     inputLoginPin.blur();
@@ -299,86 +324,86 @@ btnSort.addEventListener('click', function (e) {
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
 // LECTURES
-console.log(23 === 23.0); //true
-//base 10 0 to 9. 1/10 = 0.1, 3/10 = 3.33333333...
-//binary base 2 - 0 1
-console.log(0.1 + 0.2); //0.30000000000004 wird result in js
-console.log(0.1 + 0.2 === 0.3); //false!
+// console.log(23 === 23.0); //true
+// //base 10 0 to 9. 1/10 = 0.1, 3/10 = 3.33333333...
+// //binary base 2 - 0 1
+// console.log(0.1 + 0.2); //0.30000000000004 wird result in js
+// console.log(0.1 + 0.2 === 0.3); //false!
 
-//Conversion
-console.log(Number('23')); //23
-console.log(+'23'); //plus operand changes string to number
+// //Conversion
+// console.log(Number('23')); //23
+// console.log(+'23'); //plus operand changes string to number
 
-//Parsing
-console.log(Number.parseInt('30px', 10)); //parsing string to number, sec parameter 10 base
+// //Parsing
+// console.log(Number.parseInt('30px', 10)); //parsing string to number, sec parameter 10 base
 
-console.log(Number.parseInt('2.5rem')); //2 integer = calkowite
-console.log(Number.parseFloat('2.5rem')); //2.5
+// console.log(Number.parseInt('2.5rem')); //2 integer = calkowite
+// console.log(Number.parseFloat('2.5rem')); //2.5
 
-console.log(Number.isNaN(20)); //NaN (not a number) => false,
+// console.log(Number.isNaN(20)); //NaN (not a number) => false,
 
-//Checking if value is a number
-console.log(Number.isFinite(20)); //true
-console.log(Number.isFinite('20')); //false string
-console.log(Number.isFinite(+'20')); //true
+// //Checking if value is a number
+// console.log(Number.isFinite(20)); //true
+// console.log(Number.isFinite('20')); //false string
+// console.log(Number.isFinite(+'20')); //true
 
-console.log(Number.isInteger(23)); //true
-console.log(Number.isInteger(23.0)); //true
-console.log(Number.isInteger(23 / 0)); //false
+// console.log(Number.isInteger(23)); //true
+// console.log(Number.isInteger(23.0)); //true
+// console.log(Number.isInteger(23 / 0)); //false
 
-//////////////////////////////////////////////////////////////////////////////
-//MATH AND ROUNDING
+// //////////////////////////////////////////////////////////////////////////////
+// //MATH AND ROUNDING
 
-console.log(Math.sqrt(25)); //5 square root, pierviastek
-console.log(25 ** (1 / 2)); //5 inny zapis
-console.log(8 ** (1 / 3)); // pierwiastek potrojny z 8 = 2 do trzeciej potegi(qubik root)
+// console.log(Math.sqrt(25)); //5 square root, pierviastek
+// console.log(25 ** (1 / 2)); //5 inny zapis
+// console.log(8 ** (1 / 3)); // pierwiastek potrojny z 8 = 2 do trzeciej potegi(qubik root)
 
-console.log(Math.max(5, 18, 23, 11, 2)); //23
-console.log(Math.max(5, 18, '23', 11, 2)); //23
+// console.log(Math.max(5, 18, 23, 11, 2)); //23
+// console.log(Math.max(5, 18, '23', 11, 2)); //23
 
-console.log(Math.min(5, 18, 23, 11, 2)); //2
+// console.log(Math.min(5, 18, 23, 11, 2)); //2
 
-console.log(Math.PI * Number.parseFloat('10px') ** 2); // obliczanie powierzchni kola
+// console.log(Math.PI * Number.parseFloat('10px') ** 2); // obliczanie powierzchni kola
 
-console.log(Math.trunc(Math.random() * 6) + 1); //1-6 random numbers
+// console.log(Math.trunc(Math.random() * 6) + 1); //1-6 random numbers
 
-const randomInt = (min, max) =>
-  Math.floor(Math.random() * (max - min) + 1) + min;
-console.log(randomInt(10, 20));
+// const randomInt = (min, max) =>
+//   Math.floor(Math.random() * (max - min) + 1) + min;
+// console.log(randomInt(10, 20));
 
-//Rounding Integers
-console.log(Math.trunc(23.3)); //23
+// //Rounding Integers
+// console.log(Math.trunc(23.3)); //23
 
-console.log(Math.round(23.3)); //23
-console.log(Math.round(23.9)); //24
+// console.log(Math.round(23.3)); //23
+// console.log(Math.round(23.9)); //24
 
-console.log(Math.ceil(23.3)); //24
-console.log(Math.ceil(23.9)); //24
-console.log(Math.ceil(-23.3)); //-23
+// console.log(Math.ceil(23.3)); //24
+// console.log(Math.ceil(23.9)); //24
+// console.log(Math.ceil(-23.3)); //-23
 
-console.log(Math.floor(23.3)); //23
-console.log(Math.floor(-23.3)); //-24
+// console.log(Math.floor(23.3)); //23
+// console.log(Math.floor(-23.3)); //-24
 
-console.log(Math.trunc(-23.3)); //-23
-console.log(Math.floor(-23.3)); //-24 //floor better to use
+// console.log(Math.trunc(-23.3)); //-23
+// console.log(Math.floor(-23.3)); //-24 //floor better to use
 
 //rounding decimals
 //toFixed returns string
-console.log((2.7).toFixed(0)); // 2.7 str
-console.log((2.7).toFixed(3)); //2.700 str
-console.log(+(2.345).toFixed(2)); //2.35
+// console.log((2.7).toFixed(0)); // 2.7 str
+// console.log((2.7).toFixed(3)); //2.700 str
+// console.log(+(2.345).toFixed(2)); //2.35
 
-/////////////////////////////////////////////////////////////////////////
-//REMAINDER OPERATOR
-console.log(5 % 2); // 1
-console.log(8 % 3); //2
+// /////////////////////////////////////////////////////////////////////////
+// //REMAINDER OPERATOR
+// console.log(5 % 2); // 1
+// console.log(8 % 3); //2
 
-console.log(6 % 2); //0
+// console.log(6 % 2); //0
 
-const isEven = n => n % 2 === 0;
+// const isEven = n => n % 2 === 0;
 
-console.log(isEven(7)); //false
-console.log(isEven(10)); //true
+// console.log(isEven(7)); //false
+// console.log(isEven(10)); //true
 
 // labelBalance.addEventListener('click', function () {
 //   [...document.querySelectorAll('.movements__row')].forEach(function (row, i) {
@@ -393,15 +418,15 @@ console.log(isEven(10)); //true
 ///////////////////////////////////////////////////////////////////////////////
 //NUMERIC SEPARATORS // dont use in methods
 
-287_460_000_000;
-const diameter = 287_460_000_000;
-console.log(diameter); // we can use underscore separator because system is treating this as a normal number
+// 287_460_000_000;
+// const diameter = 287_460_000_000;
+// console.log(diameter); // we can use underscore separator because system is treating this as a normal number
 
-const price = 345_99;
-console.log(price);
+// const price = 345_99;
+// console.log(price);
 
-const transferFee = 15_00;
-const transferFee2 = 1_500;
+// const transferFee = 15_00;
+// const transferFee2 = 1_500;
 
 ////////////////////////////////////////////////////////////////////////////////
 //BIG INT
@@ -489,3 +514,25 @@ const future = new Date(2037, 10, 19, 15, 23);
 
 // const days1 = calcDaysPassed(new Date(2037, 3, 14), new Date(2037, 3, 4));
 // console.log(days1); //10days
+
+//////////////////////////////////////////////////////////////////////////////////////
+//Internationalizing Numbers
+
+const num = 3884764.23;
+
+const options = {
+  style: 'unit', //unit, percent, currency
+  unit: 'celsius', //this is ignored if not necessary
+
+  currency: 'EUR', //must define currency manually
+  // useGrouping: false, // removes separators , . _
+};
+
+console.log('US: ', new Intl.NumberFormat('en-US', options).format(num));
+console.log('PL: ', new Intl.NumberFormat('pl-PL', options).format(num));
+console.log('DE: ', new Intl.NumberFormat('de-DE', options).format(num));
+console.log('Syria: ', new Intl.NumberFormat('ar-SY').format(num));
+console.log(
+  navigator.language,
+  new Intl.NumberFormat(navigator.language).format(num)
+);
